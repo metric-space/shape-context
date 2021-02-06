@@ -8,7 +8,10 @@ module Matrix (Matrix(..),
              size,
              rowInc,
              colInc,
-             indexMatrix
+             indexMatrix,
+             matrixTraversal,
+             pointToMatrix,
+             mysteryFunction
              ) where
 
 import qualified Data.Map as M
@@ -79,6 +82,7 @@ translateTo m (i,j) =
   fmap (colInc j . rowInc i) m
 
 
+-- this applies only when matrix is square
 matrixMidCoords :: Matrix Coordinate -> Coordinate
 matrixMidCoords matrix@(Matrix m) =
   (!! (mc `div` 2)) . (!! (mr `div` 2)) $ m
