@@ -1,12 +1,21 @@
 module Test (tests) where
 
 import Matrix
+import Types
 import Test.HUnit
 import qualified Data.Map as M
 
 
 tests :: IO ()
 tests =  runTestTTAndExit . test  $ [
+  "Matrix scalar multiplication" ~: "Simple test" ~: (2 -*- (Matrix [[1,0],[0,1]])) ~=? Matrix [[2,0],[0,2]],
+
+  "Matrix addition" ~: "Simple test" ~: (Matrix [[1,0],[0,1]] -+- Matrix [[1,0],[0,1]]) ~=? Matrix [[2,0],[0,2]],
+
+  "Matrix multiplication" ~: "Test 1" ~: ((Matrix [[2,3],[4,5]]) -**- (Matrix [[1,0],[0,1]])) ~=? Matrix [[2,3],[4,5]],
+
+  "Matrix multiplication" ~: "Test 2" ~: ((Matrix [[2,3],[4,5]]) -**- (Matrix [[2,0],[4,1]])) ~=? Matrix [[16,3],[28,5]],
+
   "Matrix size test" ~: "Simple test" ~: (size . Matrix $ [[2,3],[4,5]]) ~=? (2,2),
 
   "rowInc test" ~: "Property test" ~: (let m = Matrix [[(2,3),(4,8)],[(7,3),(4,5)]]

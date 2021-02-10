@@ -1,5 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Matrix (Matrix(..),
              Coordinate,
@@ -14,11 +16,26 @@ module Matrix (Matrix(..),
              mysteryFunction
              ) where
 
+import Types
+import Data.List (transpose)
 import qualified Data.Map as M
 
 
 --  Important Type Definition
 data Matrix a = Matrix [[a]] deriving (Eq, Show, Functor)
+
+
+instance (Num a) => VectorSpace (Matrix a) a where
+  x -*- y = fmap (* x) y
+  (Matrix x) -+- (Matrix y) =  Matrix . zipWith (zipWith (+)) x $ y
+
+
+instance (Num a) => Algebra (Matrix a) a where
+  (Matrix x) -**- (Matrix y)
+    = Matrix . map f $ x
+    where  f z =  map (foldl1 (+) . zipWith (*) z) y_t
+           y_t = transpose y
+
 
 type Coordinate  = (Int,Int)
 type Matrix_size = (Int, Int)
