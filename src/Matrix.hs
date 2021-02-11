@@ -13,7 +13,8 @@ module Matrix (Matrix(..),
              indexMatrix,
              matrixTraversal,
              pointToMatrix,
-             mysteryFunction
+             mysteryFunction,
+             (-***-)
              ) where
 
 import Types
@@ -41,6 +42,9 @@ type Coordinate  = (Int,Int)
 type Matrix_size = (Int, Int)
 type Kernel_size =  Matrix_size
 
+
+(-***-) :: (Num a) =>  Matrix a -> Matrix a -> Matrix a
+(Matrix x) -***- (Matrix y) =  Matrix . zipWith (zipWith (*)) x $ y
 
 -- data Increment = R | D deriving (Eq, Show)
 
@@ -119,3 +123,4 @@ mysteryFunction m ks@(kr,kc) =
   M.fromList
   . map (\x -> (x, pointToMatrix x ks))
   . matrixTraversal m $ (div kr 2, div kc 2)
+
