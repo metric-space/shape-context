@@ -43,6 +43,7 @@ type Matrix_size = (Int, Int)
 type Kernel_size =  Matrix_size
 
 
+-- Schor Product 
 (-***-) :: (Num a) =>  Matrix a -> Matrix a -> Matrix a
 (Matrix x) -***- (Matrix y) =  Matrix . zipWith (zipWith (*)) x $ y
 
