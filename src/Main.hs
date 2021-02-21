@@ -4,6 +4,7 @@ module Main (main) where
 
 import qualified System.Environment as Env
 import qualified Data.Map as M
+import Data.List
 import Codec.Picture as C
 import Codec.Picture.Types as T
 import Data.Vector.Storable as V
@@ -43,10 +44,15 @@ f i@(Image w h _) =
         mm = mysteryFunction im (size edgeFilter)
         im = indexMatrix (w,h)
 
+
 main :: IO ()
 main = do
-         k <- Env.getArgs >>= (C.readImage . Prelude.head)
-         case k of (Right i) -> f (convert2Grey i)
-                   _ -> putStrLn "Yeah .. things failed"
-         return ()
+         Env.getArgs
+           >>= return . uncons
+           >>= (\filename -> case filename of
+                   Just (name,_) -> C.readImage name
+                   Nothing -> return . Left $ "No filename given")
+           >>= (\image -> case image of
+                   Right i -> f (convert2Grey i)
+                   Left msg -> putStrLn msg)
 
