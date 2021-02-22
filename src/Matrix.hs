@@ -22,13 +22,17 @@ import Data.List (transpose)
 import qualified Data.Map as M
 
 
+zipMatrix  :: (a -> b-> c) -> Matrix a -> Matrix b -> Matrix c
+zipMatrix f (Matrix a) (Matrix b) = Matrix . zipWith (zipWith f) a $ b
+
+
 --  Important Type Definition
 data Matrix a = Matrix [[a]] deriving (Eq, Show, Functor)
 
 
 instance (Num a) => VectorSpace (Matrix a) a where
   x -*- y = fmap (* x) y
-  (Matrix x) -+- (Matrix y) =  Matrix . zipWith (zipWith (+)) x $ y
+  (-+-)  = (zipMatrix (+)) 
 
 
 instance (Num a) => Algebra (Matrix a) a where
@@ -43,11 +47,9 @@ type Matrix_size = (Int, Int)
 type Kernel_size =  Matrix_size
 
 
--- Schor Product 
+-- Schor Product
 (-***-) :: (Num a) =>  Matrix a -> Matrix a -> Matrix a
-(Matrix x) -***- (Matrix y) =  Matrix . zipWith (zipWith (*)) x $ y
-
--- data Increment = R | D deriving (Eq, Show)
+(-***-) =  (zipMatrix (*))
 
 
 size :: Matrix a -> Matrix_size
@@ -62,33 +64,11 @@ colInc :: Int -> Coordinate -> Coordinate
 colInc x (r,c) = (r , c + x)
 
 
--- 
 indexMatrix :: Matrix_size -> Matrix Coordinate
 indexMatrix (r,c) =
   Matrix . zipWith (\rInc -> map (rowInc rInc)) rowIncrements $ vanillaMatrix
   where vanillaMatrix = take r . repeat .  map (0,) $ [0 .. (c - 1)]
         rowIncrements = [0 .. (r - 1)]
-
-
---rowMatrixInc :: Int -> Matrix (Int,Int) -> Matrix (Int,Int)
---rowMatrixInc inc = fmap (rowInc inc)
---
---
---index_matrix_inc :: [Matrix (Int, Int)] -> Increment -> [Matrix (Int,Int)]
---index_matrix_inc im R = im ++ [fmap (colInc 1) (last im)]
---index_matrix_inc im D = im ++ (map (fmap (rowInc 1)) im)
---
---
----- assume already validated before this step
---gen_index_matrix :: Kernel_size -> (Int,Int) -> [Matrix (Int, Int)]
---gen_index_matrix ks (r, d) = foldl index_matrix_inc [(indexMatrix ks)] ((replicate r R) ++ (replicate d D))
--- 
---
---break_matrix :: Matrix_size -> Kernel_size -> [Matrix (Int, Int)]
---break_matrix x@(mr,mc) y@(kr,kc) = let (rows,cols) = (mr - kr + 1, mc - kc + 1)
---                                   in if (rows*cols >=  0)
---                                      then (gen_index_matrix y (rows,cols))
---                                      else []
 
 
 matrixTraversal :: Matrix a -> (Int,Int) -> [Coordinate]
@@ -124,4 +104,3 @@ mysteryFunction m ks@(kr,kc) =
   M.fromList
   . map (\x -> (x, pointToMatrix x ks))
   . matrixTraversal m $ (div kr 2, div kc 2)
-

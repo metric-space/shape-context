@@ -36,23 +36,23 @@ ff c@(x,y) info kernel cmap =
                             Nothing -> C.pixelAt info x y
 
 
-f :: C.Image C.PixelF -> IO ()
-f i@(Image w h _) =
-  C.writePng "./output.png" image
-  where image = generateImage (\x y -> a !! x !! y) w h
-        (Matrix a) = fmap (f28 . (\x -> ff x i edgeFilter mm))  im
-        mm = mysteryFunction im (size edgeFilter)
+f :: Matrix Float -> C.Image C.PixelF -> C.Image C.PixelF
+f filter i@(Image w h _) =
+  generateImage (\x y -> a !! x !! y) w h
+  where (Matrix a) = fmap (\x -> ff x i filter subImageMap)  im
+        subImageMap = mysteryFunction im (size filter)
         im = indexMatrix (w,h)
 
 
 main :: IO ()
 main = do
+         -- tests
          Env.getArgs
            >>= return . uncons
            >>= (\filename -> case filename of
                    Just (name,_) -> C.readImage name
                    Nothing -> return . Left $ "No filename given")
            >>= (\image -> case image of
-                   Right i -> f (convert2Grey i)
+                   Right i -> C.writePng "./output.png" . C.pixelMap f28 . f edgeFilter  . convert2Grey $ i
                    Left msg -> putStrLn msg)
 
