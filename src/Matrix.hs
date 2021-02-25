@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Matrix (Matrix(..),
+module Matrix (
+             zipMatrix,
+             Matrix(..),
              Coordinate,
              Matrix_size,
              Kernel_size,
@@ -32,7 +34,7 @@ data Matrix a = Matrix [[a]] deriving (Eq, Show, Functor)
 
 instance (Num a) => VectorSpace (Matrix a) a where
   x -*- y = fmap (* x) y
-  (-+-)  = (zipMatrix (+)) 
+  (-+-)  = (zipMatrix (+))
 
 
 instance (Num a) => Algebra (Matrix a) a where
