@@ -13,6 +13,7 @@ import Matrix
 import Types
 import Test
 import Image
+import Canny
 
 
 -- promotePixel
@@ -28,20 +29,11 @@ edgeFilter = Matrix [[-1.0,-1.0,-1.0],
                      [-1.0,8.0 ,-1.0],
                      [-1.0,-1.0,-1.0]]
 
--- name of this function
-ff :: Coordinate -> C.Image C.PixelF -> Matrix Float -> M.Map Coordinate (Matrix Coordinate) -> C.PixelF
-ff c@(x,y) info kernel cmap =
-  case (M.lookup c cmap) of (Just m) -> let (Matrix a) = kernel -***- fmap (\(x,y) -> C.pixelAt info x y) m
-                                        in Prelude.foldl1 (+) . Prelude.concat $ a
-                            Nothing -> C.pixelAt info x y
 
-
-applyKernel :: Matrix Float -> C.Image C.PixelF -> C.Image C.PixelF
-applyKernel filter i@(Image w h _) =
-  generateImage (\x y -> a !! x !! y) w h
-  where (Matrix a) = fmap (\x -> ff x i filter subImageMap)  im
-        subImageMap = mysteryFunction im (size filter)
-        im = indexMatrix (w,h)
+applyKernel :: Matrix Float -> Matrix Float -> Matrix Float
+applyKernel filter matrix = fmap (\x -> ff x i filter subImageMap) im
+  where subImageMap = mysteryFunction im (size filter)
+        im = indexMatrix (size matrix)
 
 -- Reader monad based pipeline?
 
@@ -66,8 +58,12 @@ sobelKernel i@(Image w h _) =
         subImageMap = mysteryFunction im (size g_x)
         im = indexMatrix (w,h)
 
+  
+
 
 -- point of entry: C.Image C.PixelF ->  C.Image C.PixelF
+
+--  Reader Monad info -> w,h image, pipeline tuple of 
 
 
 main :: IO ()
@@ -78,10 +74,15 @@ main = do
            >>= (\filename -> case filename of
                    Just (name,_) -> C.readImage name
                    Nothing -> return . Left $ "No filename given")
-           >>= (\image -> case image of
-                   Right i -> C.writePng "./output.png"
-                     . C.pixelMap f28
-                     . sobelKernel
-                     . convert2Grey $ i
+           >>= (\image -> case image@() of
+                   Right i -> (
+                     -- C.writePng "./output.png"
+                     -- . C.pixelMap f28
+                     let image@(Image w h _) = convert2Grey i
+                         (Matrix b) = maximumSupression . gradientMatrix . (applyKernel gaussianFilter) $ image
+                     in C.writePng "./output.png" (generateImage (\x y -> b !! x !! y) w h)
+                     -- . show
+                     -- . gradientMatrix
+                     -- . convert2Grey $ i
+                     )
                    Left msg -> putStrLn msg)
-
